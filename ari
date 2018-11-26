@@ -1,0 +1,488 @@
+\documentclass[9pt]{entcs} \usepackage{entcsmacro}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{url}
+%\usepackage{tablex}
+\sloppy
+% The following is enclosed to allow easy detection of differences in
+% ascii coding.
+% Upper-case    A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+% Lower-case    a b c d e f g h i j k l m n o p q r s t u v w x y z
+% Digits        0 1 2 3 4 5 6 7 8 9
+% Exclamation   !           Double quote "          Hash (number) #
+% Dollar        $           Percent      %          Ampersand     &
+% Acute accent  '           Left paren   (          Right paren   )
+% Asterisk      *           Plus         +          Comma         ,
+% Minus         -           Point        .          Solidus       /
+% Colon         :           Semicolon    ;          Less than     <
+% Equals        =3D           Greater than >          Question mark ?
+% At            @           Left bracket [          Backslash     \
+% Right bracket ]           Circumflex   ^          Underscore    _
+% Grave accent  `           Left brace   {          Vertical bar  |
+% Right brace   }           Tilde        ~
+
+% A couple of exemplary definitions:
+
+\newcommand{\Nat}{{\mathbb N}}
+\newcommand{\Real}{{\mathbb R}}
+% \def\lastname{Please list Your Lastname Here}
+\def\lastname{Mundim, A. A. S., Santos, M. O.}
+\begin{document}
+\begin{frontmatter}
+  \title{A Bi-objective Mixed Integer Model for the Single Link Problem Using the $\epsilon$-constraint Method} \author{Arianne A. S. Mundim
+   \thanksref{ALL}\thanksref{myemail}}
+  \address{Instituto de Ci\^encias Matem\'aticas e de Computa\c{c}\~ao\\ Universidade de S\~ao Paulo\\
+    S\~ao Carlos, Brazil} \author{Maristela O. Santos\thanksref{coemail}}
+  \address{Instituto de Ci\^encias Matem\'aticas e de Computa\c{c}\~ao\\ Universidade de S\~ao Paulo\\
+    S\~ao Carlos, Brazil} \thanks[ALL]{This study was financed in part by the Coordena\c{c}\~ao de Aperfei\c{c}oamento de Pessoal de N\'ivel Superior - Brazil (CAPES)}
+    %This study was financed in part by the Coordenação de Aperfeiçoamento de Pessoal de Nível Superior - Brasil (CAPES)}
+    %Thanks to everyone who should be thanked}
+    \thanks[myemail]{Email:
+    \href{mailto:myuserid@mydept.myinst.myedu} {\texttt{\normalshape
+        arianne@usp.br}}} \thanks[coemail]{Email:
+    \href{mailto:couserid@codept.coinst.coedu} {\texttt{\normalshape
+        mari@icmc.usp.br}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract} 
+In this paper, we study an Inventory Routing Problem for the Single Link case. In this problem, products must be transported from an origin point to a destination in order to meet the demand. The products can be delivered in a finite number of periods and the destination has a constant rate in each period. 
+There are two costs associated with the problem: transportation cost and inventory cost. The transportation cost is given by the cost of the number of trucks used to transport a set of products in all periods. The inventory cost is calculated based on the stock of the products.% between the periods.
+In the literature, the approaches usually are developed to the mono-objective problem, i.e., minimize both the inventory and transportation costs in a single function. However, for real companies, an analysis of these different costs is extremely important to define new policies. 
+In order to deal with this literature gap, we develop a bi-objective method that considered the $\epsilon$-constraint approach to deal with these two objectives. In numerical experiments, $30$ new instances based on the literature are presented and solved to optimality using the solver IBM ILOG CPLEX $12.7$.  
+The experiments show that the model returns an efficient set of non-dominated solutions.  Finally, the results indicate that, using the proposed method, decision makers will have a powerful tool to construct the Pareto front.
+\end{abstract}
+\begin{keyword}
+  Inventory Routing Problem, Single Link Problem, Bi-objective Problem, $\epsilon$-constraint Method.
+\end{keyword}
+\end{frontmatter}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Introduction}\label{intro}
+
+The problem studied considers a set of $n$ products available at an origin point and demanded at a destination point at a constant rate (or demand for the products) in each period.
+The products can be transported from the origin to the destination regularly in specific frequencies (defined by the inverse of the period) using a limited number of trucks with given capacity. The periods are integers from $1$ to the number of frequencies, i.e., the maximum number of periods is the size of the planning horizon $T$.
+The problem aims to decide how much of each product to ship at each frequency in order to minimize transportation and inventory cost. This problem is referred to here as the bi-objective Simple Link Problem.
+For example, the origin may represent a consolidation center and the destination a depot. Some origins regularly send products to the consolidation center, and then, the products are shipped to the depot (\cite{bertazzi2000}). This problem with discrete frequencies is shown to be NP-hard in \cite{speranza1996}. The practical situations for the case in which the set of possible shipping frequencies is given can be found in \cite{HALL1985}, \cite{Maxwell1985}, \cite{Jackson1988} and \cite{MUCKSTADT1993}.
+
+\cite{HALL1985} proposed a new method to determine the optimal frequency for the single link problem. This optimal dispatch schedule is very flexible and allows for the combined inventory and transportation costs of the collection to be reduced. The method has been developed analytically and illustrated with a toy problem.
+In \cite{Maxwell1985} a model that can be used to find consistent and realistic reorder intervals for each item in large-scale production-distribution systems is presented. They presented an algorithm to solve it. The model that results from these assumptions is an integer nonlinear programming problem.
+%
+Two models are provided in \cite{Jackson1988}. The first one with a single constrained work center and the other one with multiple constrained work centers, and both have limited capacity. They provided necessary and sufficient conditions that characterize the solution and showed that the optimal partition of nodes in the production-distribution network is invariant to arbitrary parameters.
+%
+The chapter \cite{MUCKSTADT1993} reviews optimization-based methods for solving small IRPs. It proposes algorithms to solve these models. The chapter examines several different multi-stage generalizations of the model. A system having a serial structure is studied. A system with an assembly system structure is examined, and a model and an algorithm for a distribution system were discussed.
+%
+
+The Single Link Problem - mono- and bi-objective - is a variant of the Inventory and Routing Problem (IRP), introduced by \cite{bell83}. The IRP involves both the origin’s and the destination’s inventory, in addition to the routing of the products from origin to destination. A review of the IRP is presented in \cite{bertazzi2012} with an overview of the Single Link Problem, with examples, characteristics and different models and policies for the class of problems where the crucial decision is when to serve destinations. The IRP consists of a set of origins which must distribute a set of products to several destinations, and where origin points have vehicles capable of delivery, and where destinations have a demand.
+
+In the IRP there are different techniques to control the origin's and destination's inventories.
+Thus, to meet the market’s need for activities, initiatives have emerged in order to facilitate decisions made by the manager. \cite{bertazzi2012} present some existing techniques, the Retailer  Managed  Inventory  (RMI)  and the  Vendor Managed Inventory (VMI), of which VMI stands out for providing good practical results in companies by providing a quick response to the destination \cite{ARORA2010}. In this paper, we studied the VMI technique.
+
+The VMI technique consists of the control of the origin on the supply of the destination’s stock, aiming to monitor the consumers' stock by means of previously obtained data analysis. This strategy reduces uncertainty about inventory, increases efficiency through automation of activities and decreases expenses with transportation and product storage. However, in order to obtain good confidence between the two parties involved, especially during the data collection stage. Some studies using VMI can be found in \cite{azuma2011}, \cite{andrei2006}, \cite{standerski2003}.
+
+%Essa penúltima frase "However,..." ficou incompleta, começa com "entretanto, para obter confiança," e não termina,
+
+In \cite{speranza1994} a mono-objective Single Link Problem version for this problem is introduced, where the inventory and transportation costs are added together; a version of this problem was introduced together with other models for shipping products from an origin to a destination. \cite{speranza1994} and  \cite{bertazzi2000} provided exact solutions for real instances of the single link problem.  \cite{speranza1996} solves the problem using a greedy algorithm and a Branch-and-Bound algorithm, whose computational results from the last algorithm show the possibility of solving realistically sized problems.
+
+The mono-objective Single Link Problem is dealt with in \cite{bertazzi2002}. They present a general framework of analysis from which they derive the known approaches with a continuous frequency and with a set of given frequencies. They propose a new model for the case with discrete shipping times in which a shipment can take place at each discrete instant.
+
+For the Single Link Problem, the authors usually consider the mono-objective problem. However, in practice, the managers want more information about the relations between these objectives, how much the cost of inventory increases, when the cost of transport is minimal or vice versa. For this, in this paper, we proposed a bi-objective approach to deal with the single link problem, where we can obtain Pareto front. A bi-objective approach to the Single Link Problem can be found in \cite{FRANCO2016}, \cite{sadok2013} and \cite{arab2018}.
+
+A multi-objective algorithm embedded with column generation to solve a green bi-objective IRP is presented in \cite{FRANCO2016}. They minimize the total cost of the overall supply chain network and ${CO}_2$ emissions. They proposed the use of the Non-inferior Set Estimation algorithm combined with column generation to reduce the number of variables in the problem.
+\cite{sadok2013} determine the multi-tours of a homogeneous fleet of vehicles covering a set of sales-points and minimizing the distribution and inventory costs per hour. They analyze this problem as a bi-objective IRP in which the transportation cost and the delivery cost are considered separately. Two approaches are proposed to approximate the Pareto front of this bi-objective problem. Both methods are an adaptation of the hybrid grouping genetic algorithm. % (HGGA).
+In \cite{arab2018} the problem is modeled aiming to minimize two objectives, namely the total system cost and risk-based transportation. This problem belongs to a class of NP-hard problems. Then, a multi-objective imperialist competitive algorithm is employed. Furthermore, the computational results are compared to show the performance of the algorithm. %(MOICA) 
+
+%
+
+Therefore, in this paper, we model the bi-objective Simple Link Problem using the VMI technique and the $\epsilon$-constraint method to deal with the bi-criteria problem.
+
+Thus, this paper is structured as follows. Section~\ref{descPROB} presents the description of the problem and the mathematical model of the problem. In Section~\ref{biobjt}, a motivating example is shown and then the $\epsilon$-constraint method is presented. Section~\ref{compEXP} describes the tests carried out of the bi-objective approach described in Section~\ref{biobjt} and their results. This paper is concluded with Section~\ref{concls}, where a conclusion and some remarks are made with respect to the work presented.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Description of the problem}\label{descPROB}
+
+A set of products $I$ is made available at an origin A and demanded at a destination B at a constant rate of $q_i$. A set of frequencies, indexed by $J$, is considered and each frequency $F_j$ corresponds to the delivery time $t_j = 1 / F_j$,  thus, deliveries are made in discrete times. Trucks, with given capacity $r_j$, are available for shipping products, and each product can be partially shipped by trucks traveling at different frequencies $F_j$. Each product $i \in I$ with a unit of volume $v_i$ can be continuously divided. It is assumed that, for each product, the production rate is equal to the demand rate. Two cost factors are considered, namely the transportation, $c_j$, and the inventory cost, $h_i$, (which is
+charged in the same way both at the origin and at the destination). All shipments having the same frequency are supposed to be simultaneous, i.e., performed at the same time. For each frequency, an unlimited number
+of trucks is available. The inventory level of any product $i \in I$ in the origin and the destination must be non-negative.
+The objective of this model is to decide the fraction of each product which has to be shipped at each frequency in such a way that the sum of the
+transportation and the inventory costs are minimized, i.e., find the delivery policy, which, in this case, its solution are the frequencies, the quantity with which the products are delivered in frequency $F_j$ and, additionally, the number of routes required in frequency $F_j$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Mathematical Model}\label{model}
+
+The model presented in this subsection is based on \cite{bertazzi2012} and \cite{bertazzi2000}. A description of the problem is given, and the model considering the objective function to be minimizing the sum of the costs is presented as follows: \\
+
+Parameters:
+
+$I \rightarrow$ set of products that have to be shipped from an origin point $A$ to a destination point $B$;
+
+$J \rightarrow$ set of given frequencies;
+
+$q_i \rightarrow$ constant rate at which product $i$ is made available at the origin and absorbed at the destination;
+
+$v_i \rightarrow$ volume of product $ i $;
+
+$h_i \rightarrow$ cost of inventory of product$ i $;
+
+$F_j \rightarrow$ $j$-th frequency, with $j \in J$;
+
+$t_j = 1 / F_j \rightarrow$ period, discrete time in frequency $ F_j $;
+
+$r_j \rightarrow$ capacity of each truck traveling at frequency $F_j$;
+
+$c_j \rightarrow$ cost of a single trip of a truck traveling at frequency $F_j$.\\
+
+Decision variables:
+
+$y_j \rightarrow$ number of vehicles to use at frequency $ j $;
+
+$x_{ij} \rightarrow$ percentage of product $ i $ to ship at frequency $ j $. \\
+
+Minimize
+\begin{eqnarray}\label{f_obj2}
+\sum _{i \in I} \sum _{j \in J} \, h_i \, q_i \, t_j \, x_{ij} + \sum _ {j \in J} \, \left(\frac{c_j}{t_j}\right) y_j
+\end{eqnarray}
+
+Subject to:
+
+\begin{eqnarray}\label{rest_1}
+\sum _{j \in J}x_{ij} = 1, \quad i \, \in I \, \\ [1mm]
+\label{rest_2}
+t_j\sum _{i \in I} v_i \, q_i \, x_{ij} \leq r_j \, y_j , \quad \, j \, \in J\\ [1mm]
+\label{rest_3}
+0 \leq x_{ij} \leq 1, \quad i \, \in I, \quad j \, \in J \\ [4mm]
+\label{rest_4}
+y_{j} \geq 0, \quad y_{j} \in \mathbb{Z}, \quad j \, \in J
+\end{eqnarray}
+
+In the objective function (\ref{f_obj2}) we have $f=h_i \, q_i \, t_j \, x_{ij}$ related to minimizing the average transportation cost and $g=({c_j}/{t_j}) \, y_j$ related to minimizing the inventory cost, both per unit of time. The set of constraints (\ref{rest_1}) ensures that the products are fully delivered from the origin to the destination using one or more frequencies. The set of constraints (\ref{rest_2}) states that the number of vehicles used at each frequency is sufficient. Finally, constraints (\ref{rest_3}) and (\ref{rest_4}) define non-negative decision variables, $y_{j}$ being integer.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Bi-objective approach}\label{biobjt}
+
+A bi-objective optimization problem involves two objective functions. In this paper, the SLP was formulated as follows:
+
+\begin{eqnarray}\label{OBJET}
+\mbox{Minimize} \, \bigg\{ \sum _{i \in I} \sum _{j \in J} \, f \, , \sum _ {j \in J} \, g \bigg\}
+\end{eqnarray}
+
+The objective function in (\ref{OBJET}) aims at Pareto-optimal solutions that are both at minimum costs of inventory and transportation. To facilitate understanding, Section~\ref{toy} presents a toy problem with a brief trade-off analysis between the two objectives. In Section~\ref{eps} we present the $\epsilon$-constraint method that will be used to solve the bi-objective problem.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{A motivating example}\label{toy}
+
+As a toy problem, we consider two examples to illustrate the problem when only one origin and one destination exist, and the objective function to be minimized is the sum of the costs given by (\ref{f_obj2}), that is, a mono-objective approach. The algorithm was implemented in the C++ programming language and the model was solved with the IBM ILOG CPLEX 12.7 considering its default settings. 
+
+Suppose that we have two frequencies, two periods, with different capacities of each vehicle at two frequencies. We consider three products with the same rates, but different unit volumes and inventory cost.
+
+We solve the model, presented in Section~\ref{model}, for the costs of a single trip at two frequencies of instance $1$, and then we solve the model for another set of costs of a single trip at two frequencies of instance $2$. All data of these examples are given in Table~\ref{tab1}. The two instances were solved in less than $60$ seconds.
+
+\begin{table}[H]
+\begin{center}
+\caption{Example data.}\label{tab1} 
+\begin{tabular}{|l|l|} \hline 
+\multicolumn{1}{|c}{Instance $1$} & \multicolumn{1}{|c|}{Instance $2$} \\ \hline
+\multicolumn{2}{|c|}{Parameters}  \\ \hline 
+\multicolumn{2}{|c|}{$j = 1, 2 \Rightarrow F_j = \bigg\{ \frac{1}{1}, \frac{1}{2} \bigg\} \Rightarrow t_1 = 1$ and $t_2 = 2$} \\
+\multicolumn{2}{|c|}{$r_1 = 3$ and $r_2 = 1$} \\
+\multicolumn{2}{|c|}{$q_1 = q_2 = q_3 = 1$} \\
+\multicolumn{2}{|c|}{$v_1 = 5$, $v_2 = 2$ and $v_3 = 3$} \\
+\multicolumn{2}{|c|}{$h_1=1$, $h_2 = 1$ and $h_3=2$} \\ \hline
+\multicolumn{1}{|c|}{$c_1=2$ and $c_2=1$} & \multicolumn{1}{|c|}{$c_1=2$ and $c_2=2$} \\ \hline 
+\multicolumn{1}{|c|}{Optimal Solution $=11.2$} & \multicolumn{1}{|c|}{Optimal Solution $=12$} \\ 
+\multicolumn{1}{|c|}{$y_1=3$ and $y_2=2$} & \multicolumn{1}{|c|}{$y_1=4$ and $y_2=0$} \\ \hline
+\end{tabular} 
+\end{center}
+\end{table}
+
+Note that the increase of only one unit in the cost of a single trip of a truck traveling at a certain frequency, resulted in a policy with only $5$ vehicles, avoiding the total of $4$ vehicles as illustrated in Figure~\ref{fig1}. In the solution of instance $1$, we obtained that at $t_1$ (day $1$) management needs three vehicles and at $t_2$ (day $2$) he needs two vehicles plus three which are used every day, resulting in a policy of two periods with the average of vehicles used being $4$. On the other hand, in the solution of the instance $2$, management needs four vehicles every day, providing a policy of one period with an average of $4$ vehicles.
+
+\begin{figure}[H]\label{fig1}
+\caption{Draw solution for instance $1$ and instance $2$.}
+\begin{center}
+	\includegraphics[height=5cm]{figINST1} \hspace{4cm}
+	\includegraphics[height=5cm]{figINST2e}
+ \label{gdimotes}
+\end{center}
+\end{figure}
+
+This example illustrates the impact of the decisions. The analysis of this section aims to discuss the simplest of the trade-offs where we have two non-dominant solutions in relation to the two objectives. In Section~\ref{compEXP}, it is evident that reducing inventory costs increases the transportation cost while reducing the transportation cost increases the inventory cost.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{The $\epsilon$-Constraint Method}\label{eps}
+
+The $\epsilon$-constraint method was first proposed by \cite{haimes} and widely discussed in \cite{chankong1983}, \cite{miettinen2008}. In this method, one of the objective functions is selected to be optimized while the other(s) are converted into additional constraints, leading to the Pareto optimal solution. Systematic modification of the values of the objective functions forming the additional constraints leads to the generation of an evenly distributed Pareto frontier.
+
+In this paper, we select the transportation cost as the objective and the inventory cost is converted into a constraint with the upper bound $\epsilon$. Thus, the complete Mixed-Integer Programming (MIP) model with $\epsilon$ is given as follow:
+
+\begin{eqnarray}
+\mbox{min} \sum _{i \in I} \sum _{j \in J} f
+\end{eqnarray}
+
+Subject to:
+
+\begin{eqnarray}\label{constEPS}
+\sum _{i \in I} \sum _{j \in J} g \leq \epsilon
+\end{eqnarray}
+\begin{center}
+Constraints (\ref{rest_1}) -- (\ref{rest_4})
+\end{center}
+
+To find the value of $\epsilon$, the first step is solving the problem as a mono-objective problem for the transportation cost without additional constraints. From the second step onward the constraints (\ref{constEPS}) are considered with the $\epsilon$ value equalling the number of vehicles available, until it reaches a sufficiently small number of vehicles. With this, the number of vehicles decreases together with the transportation cost and the inventory cost increases. The results of this analysis will be shown in Section~\ref{compEXP}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Computational Experiments}\label{compEXP}
+
+The algorithm was implemented in the C++ programming language and the 
+computational experiments were performed on a machine with Intel{\textregistered} Core{\texttrademark} i$7-4790$ CPU $@$ $3.60$GHz$\times 8$, 16 GB RAM and Ubuntu 18.04.1 as the operating system. The MIP model was solved with IBM ILOG CPLEX 12.7 considering its default settings. 
+We impose a time limit of 3600 seconds to solve each instance as the stopping criterion.
+
+The instances are strongly inspired by \cite{bertazzi2000}. To wit:
+
+\begin{itemize}
+    \item Number of products (set $I$): $10$.
+    \item Number of frequencies (set $J$): $5$, $10$ and $15$.
+    \item $q_i$: two sets randomly generated in two different intervals ($0.1$ -- $5$) and ($5$ -- $100$);
+    \item  $v_i$: randomly generated between $0.001$ and $0.01$;
+    \item $h_i$: randomly generated between $0.001$ and $1$;
+    \item $R_j$: randomly generated between $0.05$ and $1$.
+    \item $c_j$: randomly generated between $275$ and $325$.
+\end{itemize}
+
+Figure~\ref{fig:pareto} shows the Pareto front for an instance with $10$ products and $5$ frequencies. 
+As expected, all computational experiments demonstrate that reducing the total transportation cost increases the total inventory cost, as can be seen in the Pareto front. %239/5000 
+It is worth mentioning that the inventory values are much lower than the routing values because we generate the instances randomly based on the values of \cite{bertazzi2000}. Other works such as that of \cite{Geiger} have inventory values well above transportation costs. Therefore, we reinforce that dealing with a bi-objective problem in practice brings many advantages to managers.
+
+\begin{figure}[H]
+    \centering
+    %{\footnotesize
+    \caption{Non-dominated points solution for the Pareto front.}
+\begin{tikzpicture}[xscale=300][scale=0.7] %[xscale=300][scale=0.7]
+\foreach \Point in {(0.0382, 7.3588), (0.0343, 7.6400), (0.0324, 7.9402), (0.0305, 8.2213), (0.0286, 8.5285), (0.0268, 8.8097), (0.0252, 9.0908), (0.0237, 9.3720), (0.0222, 9.6914), (0.0209, 9.9725), (0.0197, 10.2537), (0.0185, 10.5349), (0.0169, 10.8662), (0.0161, 11.1474), (0.0153, 11.4286), (0.0145, 11.7097), (0.0140, 11.9909), (0.0137, 12.2720), (0.0134, 12.5532), (0.0132, 12.8344), (0.0129, 13.2040), (0.0128, 13.4851), (0.0126, 13.7663), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590), (0.0126, 13.9590)}{\node[opacity=1] at \Point {\textbullet};}
+%\draw[->] (0.0126,7.3588) -- (0.0402,7.3588) node[right] {I};
+%\draw[->] (0.0126,7.3588) -- (0.0126,14.5690) node[above] {T};
+\draw (0.0126,7.3588) rectangle (0.0382,14.0690);
+\node[left= 0.2cm] at (0.0126,10.6589) {10658.90};
+\node[left = 2.5cm,rotate=90] at (0.0126,12.6589) {Total transportation cost};
+\node[left= 0.2cm] at (0.0126,13.9590) {13959.00};
+\node[left= 0.2cm] at (0.0126,7.3588) {7358.80};
+\node[below= 0.2cm] at (0.0254,7.3588) {25.43};
+\node[below = 1cm] at (0.0254,7.3588) {Total inventory cost};
+\node[below= 0.2cm] at (0.0382,7.3588) {38.24};
+\node[below= 0.2cm] at (0.0126,7.3588) {12.61};
+\end{tikzpicture}
+    \label{fig:pareto}%}
+\end{figure}
+
+We generate a set of $30$ instances following the parameters described above. For ease of comparison, we provide these instances in \url{https://github.com/ariannesilvamundim/instancelagos2019}. 
+In Table~\ref{tab} the results of the $30$ instances solved to optimality are presented, divided into six groups according to the frequency number.
+
+Each line of Table~\ref{tab} has the results of one instance, showing points from the Pareto front. 
+In the first column, we have the frequency number ($J$). In the second column the interval of the ($q_i$) the constant rate that product $i$ is made available at the origin and absorbed at the destination. Ensuing, we present three solutions, to wit: 1) minimal value of $f$ (MinF) and maximal value of $g$; 2) median solution between $f$ and $g$ from $100$ solutions from the Pareto front (Median); and 3) minimal value of $g$ (MinG) and maximal value of $f$. All instances were solved in less than $60$ seconds.
+
+The results of Table~\ref{tab} show that for all instances the function $f$ increases $291.62$\% in average with $203.46\%$ in median, $55.94$ in absolute value median. 
+While the function $g$ decreases $63.86$\% in average and $54.92$\% in median with absolute value median equal $13068.11$. This analysis shows the trade-off of the two functions, while one cost grows the other decreases.  In addition, we can see the mean and median values are close. This indicates a symmetry of the distribution of the solutions of the instances, especially in the first five instances that have a standard deviation on the percentage variation of $6.80$ to $f$ and $0.35$ to $g$.
+
+\begin{table}[H] \centering 
+%{\footnotesize
+\caption{Points from the Pareto front for $30$ instances.} \label{tab}
+\begin{tabular}{cccccccccc} \hline
+\multirow{2}{*}{J} & \multirow{2}{*}{$q_i$} & \multirow{2}{*}{Ins.} & \multicolumn{2}{c}{MinF} & \multicolumn{2}{c}{Median} & \multicolumn{2}{c}{MinG} &  \\ 
+		&			&			&	f		&	g		&	f		&	g		&	f		&	g		&	\\\hline
+\multirow{5}{*}{5}		&	\multirow{5}{*}{0.1-5}		&	1		&	9.65		&	25738.50		&	10.06		&	24234.00		&	28.90		&	2234.42		&	\\
+		&			&	2		&	13.38		&	12160.00		&	13.49		&	11769.54		&	26.75		&	3553.50		&	\\
+		&			&	3		&	8.47		&	111228.00		&	8.48		&	111007.25		&	42.35		&	5999.60		&	\\
+		&			&	4		&	10.90		&	3920.00		&	11.34		&	3621.00		&	21.79		&	3090.00		&	\\
+		&			&	5		&	14.07		&	24447.00		&	14.08		&	24320.50		&	28.15		&	5562.00		&	\\\hline
+\multirow{5}{*}{5}		&	\multirow{5}{*}{5-10}		&	6		&	41.39		&	30056.00		&	42.50		&	29846.40		&	206.93		&	14235.20		&	\\
+		&			&	7		&	40.06 &	26560.00 &	40.10 &	26339.66 &	121.39 &	10862.94		&	\\
+		&			&	8		&	37.92		&	28910.00		&	38.18		&	28848.00		&	38.18		&	28848.00		&	\\
+		&			&	9		&	39.45		&	186113.00		&	39.45		&	186113.00		&	193.43		&	9960.65		&	\\
+		&			&	10		&	57.23		&	222780.50		&	57.23		&	222780.50		&	112.98		&	13047.50		&	\\\hline
+\multirow{5}{*}{10}		&	\multirow{5}{*}{0.1-5}		&	11		&	9.00		&	46455.00		&	9.02		&	45747.50		&	27.27		&	4130.28		&	\\
+		&			&	12		&	9.74		&	16006.00		&	9.91		&	15240.50		&	19.88		&	4672.82		&	\\
+		&			&	13		&	15.94		&	99738.92		&	15.94		&	99738.92		&	79.56		&	5167.10		&	\\
+		&			&	14		&	11.42		&	4768.00		&	14.21		&	4256.04		&	65.08		&	3609.48		&	\\
+		&			&	15		&	10.45		&	17580.00		&	10.50		&	17146.50		&	84.26		&	2776.96		&	\\\hline
+\multirow{5}{*}{10}		&	\multirow{5}{*}{5-10}		&	16		&	30.50		&	9060.00		&	30.92		&	9053.00		&	30.92		&	9053.00		&	\\
+		&			&	17		&	33.18		&	31284.00		&	33.18		&	31122.00		&	165.88		&	9817.20		&	\\
+		&			&	18		&	43.06		&	14280.00		&	60.02		&	13318.83		&	130.50		&	12340.35		&	\\
+		&			&	19		&	33.90		&	19564.00		&	34.46		&	18798.50		&	282.52		&	14573.28		&	\\
+		&			&	20		&	41.92		&	12810.00		&	58.61		&	11711.68		&	299.47		&	10038.88		&	\\\hline
+\multirow{5}{*}{15}		&	\multirow{5}{*}{0.1-5}		&	21		&	13.88		&	2880.00		&	13.94		&	2688.03		&	13.94		&	2688.03		&	\\
+		&			&	22		&	16.49		&	55476.00		&	16.65		&	54562.74		&	50.56		&	5620.63		&	\\
+		&			&	23		&	8.55		&	4284.00		&	14.20		&	3950.96		&	94.99		&	3019.50		&	\\
+		&			&	24		&	14.29		&	7670.00		&	17.88		&	7149.63		&	84.44		&	4259.36		&	\\
+		&			&	25		&	19.54		&	31000.00		&	19.57		&	30749.00		&	39.78		&	2968.56		&	\\\hline
+\multirow{5}{*}{15}		&	\multirow{5}{*}{5-10}		&	26		&	38.97		&	18005.00		&	39.35		&	17342.50		&	78.18		&	9292.71		&	\\
+		&			&	27		&	35.87		&	10944.00		&	36.11		&	10863.50		&	144.52		&	9509.12		&	\\
+		&			&	28		&	38.49		&	25696.00		&	38.65		&	25168.00		&	154.06		&	6673.66		&	\\
+		&			&	29		&	27.63		&	15750.00		&	27.73		&	15620.70		&	83.76		&	11046.28		&	\\
+		&			&	30		&	36.92		&	25160.00		&	36.97		&	25015.00		&	112.15		&	7361.89		&	\\ \hline
+\end{tabular}%}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}\label{concls}
+In this paper, we proposed a bi-objective mixed integer model for the Single Link Problem. We used the $\epsilon$-constraint method to solve the bi-objective mixed integer model. The computational experiments show that applying the $\epsilon$-constraint is efficient to construct the Pareto front. 
+%
+The computational experiments show that the proposed method is efficient to solve the bi-objective Single Link Problem and is suitable for small companies and managers.
+
+Future studies will consider the bi-criteria problem with additional constraints in order to compare with the literature. In addition, we propose math-heuristics using the proposed method here to solve instances with a large number of items. 
+
+We make the instances based on the literature available in our website for comparison for other authors and future works.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{10}\label{bibliography}
+
+\bibitem{arab2018}Arab, R., Ghaderi, S. F., Tavakkoli-Moghaddam, R.,
+\emph{Solving a new multi-objective inventory-routing problem by an imperialist competitive algorithm},
+International Journal of Transportation Engineering (2018).
+
+\bibitem{arenales2015}Arenales, M., Armentano, V., Morabito, R. and Yanasse, H., 
+``Pesquisa operacional: para cursos de engenharia,'' Elsevier Brasil, 2015.
+
+\bibitem{ARORA2010}Arora, V., Chan, F.T.S., Tiwari, M.K.,
+\emph{An integrated approach for logistic and vendor managed inventory in supply chain},
+Expert Systems with Applications {\bf 37} (2010), 39--44.
+
+\bibitem{azuma2011}Azuma, R. M.,
+``Otimiza\c{c}\~ao multiobjetivo em problema de estoque e roteamento gerenciados pelo fornecedor,'' Ms. thesis, Universidade Estadual de Campinas, Campinas, 2011.
+
+\bibitem{bell83}Bell, W. J., et al,
+\emph{Improving the Distribution of Industrial Gases with an On-Line Computerized Routing and Scheduling Optimizer},
+Interfaces {\bf 13} (1983), 4-23.
+
+\bibitem{bertazzi2000}Bertazzi, L., Speranza, M. G., Ukovich, W.,
+\emph{Exact and Heuristic Solutions for a Shipment Problem with Given Frequencies},
+Management Science {\bf 46} (2000), 973--988.
+
+\bibitem{bertazzi2002}Bertazzi, L., and Speranza, M. G.,
+\emph{Continuous and Discrete Shipping Strategies for the Single Link Problem},
+Transportation Science {\bf 36} (2002), 314--325.
+
+\bibitem{bertazzi2012}Bertazzi, L., and Speranza, M. G., 
+\emph{Inventory routing problems: an introduction},
+EURO Journal on Transportation and Logistics {\bf 1} 
+(2012), 307--326.
+
+\bibitem{chankong1983}Chankong, V., Haimes, Y. Y.;
+``Multiobjective Decision Making: Theory and Methodology,''
+Elsevier Science Publishing, 1983.
+
+\bibitem{chircop2012}Chircop, K., Zammit-Mangion, D.,
+\emph{On Ɛ-constraint based methods for the generation of
+Pareto frontiers},
+Journal of Mechanics Engineering and Automation {\bf 3}, (2013), 279--289.
+
+\bibitem{Dantzig59}Dantzig, G. B., Ramser, J. H.,
+\emph{The Truck Dispatching Problem},
+Management Science {\bf 6},
+(1959), 80--91.
+
+\bibitem{FRANCO2016}Franco, C., S. E. L., Giraldo, G.,
+\emph{A Column Generation Approach for Solving a Green Bi-objective Inventory Routing Problem},
+Ibero-American Conference on Artificial Intelligence, {\bf10022}, (2016), 101--112.
+
+\bibitem{Geiger}Geiger, M. J., Sevaux, M.,
+ \emph{The Biobjective Inventory Routing Problem: Problem Solution and Decision Support},
+ Proceedings of the 5th International Conference on Network Optimization, (2011), 365--378.
+
+\bibitem{haimes}Haimes, Y., Lasdon, L., and Wismer, D., 
+\emph{On a bicriterion formulation of the problems of integrated system identification
+and system optimization},
+IEEE Transactions on Systems, Man, and Cybernetics,
+(1971), 296--297.
+
+\bibitem{HALL1985}Hall, R. W.,
+\emph{Determining vehicle dispatch frequency when shipping frequency differs among origins},
+Transportation Research Part B: Methodological, {\bf 19} (1985), 421--431.
+
+\bibitem{Jackson1988}Jackson, P. L., Maxwell, W. L., Muckstadt, J. A.,
+\emph{Determining Optimal Reorder Intervals in Capacitated Production-Distribution Systems},
+Management Science {\bf 34} (1988) 938--958.
+
+\bibitem{Maxwell1985}Maxwell, W. L., and Muckstadt, J. A.,
+\emph{Establishing Consistent and Realistic Reorder Intervals in Production-Distribution Systems},
+Operations Research {\bf 6}, (1985) 1316--1341.
+
+\bibitem{miettinen2008}Miettinen, K.,
+Introduction to multiobjective optimization:
+Noninteractive approaches, ``Multiobjective Optimization,''
+Springer-Verlag Berlin Heidelberg, 1-26, 2008.
+
+\bibitem{MUCKSTADT1993}Muckstadt, J. A, Roundy, R. O.,
+Analysis of multistage production systems.
+"Logistics of Production and Inventory,"
+Vol. 4, Elsevier, North-Holland, Amsterdam, 1993.
+59--131.
+
+\bibitem{sadok2013}Sadok, A, Teghem, J., Chabcoub H.,
+\emph{Grouping genetic algorithms for a bi-objective inventory routing problem},
+International Journal of Multicriteria Decision Making {\bf 3} (2013), 256--276.
+
+\bibitem{speranza1994}Speranza, M. G., and Ukovich, W.,
+\emph{Minimizing Transportation and Inventory Costs for Several Products on a Single Link}, Operations Research {\bf 42} (1994), 879--894.
+
+\bibitem{speranza1996}Speranza, M. G., and Ukovich, W.,
+\emph{An algorithm for optimal shipments with given frequencies},
+Naval Research Logistics {\bf 43}
+(1996), 655--671.
+
+\bibitem{standerski2003}Standerski, N.,
+\emph{Aplica\c{c}\~ao de Algoritmos Gen\'eticos Paralelos a Problemas de 
+Grande Escala de VMI - Vendor Managed Inventory},
+XXV Simp\'osio Brasileiro de Pesquisa Operacional,
+(2003), 1184--1195.
+
+\bibitem{andrei2006}Znamensky, A.,
+``Heur\'isticas para o problema de Distribui\c{c}\~ao com Estoques Geridos
+pelo Fornecedor'', Ms. thesis, Escola Polit\'ecnica da Universidade de S\~ao Paulo,
+S\~ao Paulo, 2011.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \bibitem{cy} Civin, P., and B. Yood, \emph{Involutions on Banach
+%     algebras}, Pacific J. Math. \textbf{9} (1959), 415--436.
+%   
+% \bibitem{cp} Clifford, A. H., and G. B. Preston, ``The Algebraic
+%   Theory of Semigroups,'' Math. Surveys \textbf{7}, Amer. Math. Soc.,
+%   Providence, R.I., 1961.
+%   
+% \bibitem{f} Freyd, Peter, Peter O'Hearn, John Power, Robert Tennent
+%   and Makoto Takeyama, \emph{Bireflectivity}, Electronic Notes in
+%   Theoretical Computer Science {\bf 1} (1995), URL:
+%   \href{https://www.sciencedirect.com/journal/electronic-notes-in-theoretical-computer-science/vol/1/suppl/C}
+%   {\texttt{http://www.elsevier.com/locate/entcs/volume1.html}}.
+%   
+% \bibitem{em2} Easdown, D., and W. D. Munn, \emph{Trace functions on
+%     inverse semigroup algebras}, U. of Glasgow, Dept. of Math.,
+%   preprint 93/52.
+% 
+% \bibitem{r} Roscoe, A. W., ``The Theory and Practice of Concurrency,''
+%   Prentice Hall Series in Computer Science, Prentice Hall Publishers,
+%   London, New York (1198), 565pp. With associated web site\\  
+%   \href{http://www.comlab.ox.ac.uk/oucl/publications/books/concurrency/}
+%   {\texttt{http://www.comlab.ox.ac.uk/oucl/publications/books/concurrency/}}.
+%   
+% \bibitem{s} Shehadah, A. A., ``Embedding theorems for semigroups with
+%   involution, `` Ph.D.  thesis, Purdue University, Indiana, 1982.
+%   
+% \bibitem{w} Weyl, H., ``The Classical Groups,'' 2nd Ed., Princeton U.
+%   Press, Princeton, N.J., 1946.
+
+\end{thebibliography}
+
+\end{document}
